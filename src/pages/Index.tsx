@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Edit, Target, Lightbulb, Award, Brain, Zap, Globe } from "lucide-react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import LessonCard from "@/components/LessonCard";
 import WritingAssistant from "@/components/WritingAssistant";
@@ -16,11 +17,15 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [currentLevel, setCurrentLevel] = useState("beginner");
   const [userProgress, setUserProgress] = useState(35);
   const [streak, setStreak] = useState(7);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  const currentTab = searchParams.get('tab') || 'lessons';
 
   useEffect(() => {
     // Register service worker for PWA
@@ -38,6 +43,10 @@ const Index = () => {
       });
     }
   }, [user, toast]);
+
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value });
+  };
 
   const lessonCategories = [
     {
@@ -77,6 +86,20 @@ const Index = () => {
       color: "bg-orange-500"
     }
   ];
+
+  const handleLessonStart = (categoryId: string) => {
+    // Navigate to the specific lesson category
+    if (categoryId === "writing") {
+      setSearchParams({ tab: "writing" });
+    } else if (categoryId === "idioms") {
+      setSearchParams({ tab: "idioms" });
+    } else {
+      toast({
+        title: "Lesson Started!",
+        description: `Beginning ${lessonCategories.find(c => c.id === categoryId)?.title} lessons.`,
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900">
@@ -136,7 +159,7 @@ const Index = () => {
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="lessons" className="max-w-6xl mx-auto">
+        <Tabs value={currentTab} onValueChange={handleTabChange} className="max-w-6xl mx-auto">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-8">
             <TabsTrigger value="lessons" className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
@@ -166,12 +189,7 @@ const Index = () => {
                 <LessonCard
                   key={category.id}
                   category={category}
-                  onStart={() => {
-                    toast({
-                      title: "Lesson Started!",
-                      description: `Beginning ${category.title} lessons.`,
-                    });
-                  }}
+                  onStart={() => handleLessonStart(category.id)}
                 />
               ))}
             </div>

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Moon, Sun, Menu, X, Globe, User, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate, useLocation } from "react-router-dom";
 import AuthModal from "./AuthModal";
 import {
   DropdownMenu,
@@ -19,6 +20,8 @@ const Navigation = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { toast } = useToast();
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const toggleTheme = () => {
     setIsDark(!isDark);
@@ -49,13 +52,22 @@ const Navigation = () => {
     setIsAuthModalOpen(true);
   };
 
+  const navigateToSection = (section: string) => {
+    navigate(`/?tab=${section}`);
+    setIsMenuOpen(false);
+  };
+
+  const handleLogoClick = () => {
+    navigate("/");
+  };
+
   return (
     <>
       <nav className="bg-white/90 backdrop-blur-md dark:bg-gray-900/90 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 cursor-pointer" onClick={handleLogoClick}>
               <Globe className="h-8 w-8 text-blue-600" />
               <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 EnglishMaster
@@ -64,10 +76,34 @@ const Navigation = () => {
 
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-6">
-              <Button variant="ghost">Lessons</Button>
-              <Button variant="ghost">Practice</Button>
-              <Button variant="ghost">Progress</Button>
-              <Button variant="ghost">Community</Button>
+              <Button 
+                variant="ghost"
+                onClick={() => navigateToSection('lessons')}
+                className={location.search.includes('tab=lessons') ? 'bg-accent' : ''}
+              >
+                Lessons
+              </Button>
+              <Button 
+                variant="ghost"
+                onClick={() => navigateToSection('writing')}
+                className={location.search.includes('tab=writing') ? 'bg-accent' : ''}
+              >
+                Writing
+              </Button>
+              <Button 
+                variant="ghost"
+                onClick={() => navigateToSection('idioms')}
+                className={location.search.includes('tab=idioms') ? 'bg-accent' : ''}
+              >
+                Idioms
+              </Button>
+              <Button 
+                variant="ghost"
+                onClick={() => navigateToSection('progress')}
+                className={location.search.includes('tab=progress') ? 'bg-accent' : ''}
+              >
+                Progress
+              </Button>
             </div>
 
             {/* Controls */}
@@ -126,10 +162,34 @@ const Navigation = () => {
           {isMenuOpen && (
             <div className="md:hidden py-4 border-t border-gray-200 dark:border-gray-700">
               <div className="flex flex-col space-y-3">
-                <Button variant="ghost" className="justify-start">Lessons</Button>
-                <Button variant="ghost" className="justify-start">Practice</Button>
-                <Button variant="ghost" className="justify-start">Progress</Button>
-                <Button variant="ghost" className="justify-start">Community</Button>
+                <Button 
+                  variant="ghost" 
+                  className="justify-start"
+                  onClick={() => navigateToSection('lessons')}
+                >
+                  Lessons
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="justify-start"
+                  onClick={() => navigateToSection('writing')}
+                >
+                  Writing
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="justify-start"
+                  onClick={() => navigateToSection('idioms')}
+                >
+                  Idioms
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="justify-start"
+                  onClick={() => navigateToSection('progress')}
+                >
+                  Progress
+                </Button>
                 <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
                   <span className="text-sm text-gray-600 dark:text-gray-300">Theme</span>
                   <Button variant="ghost" size="icon" onClick={toggleTheme}>

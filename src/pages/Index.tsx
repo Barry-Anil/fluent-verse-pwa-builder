@@ -13,12 +13,14 @@ import IdiomsLibrary from "@/components/IdiomsLibrary";
 import DailyPrompts from "@/components/DailyPrompts";
 import ProgressDashboard from "@/components/ProgressDashboard";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const [currentLevel, setCurrentLevel] = useState("beginner");
   const [userProgress, setUserProgress] = useState(35);
   const [streak, setStreak] = useState(7);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     // Register service worker for PWA
@@ -27,7 +29,15 @@ const Index = () => {
         .then(() => console.log('Service Worker registered'))
         .catch((error) => console.log('Service Worker registration failed'));
     }
-  }, []);
+
+    // Welcome message for authenticated users
+    if (user) {
+      toast({
+        title: "Welcome back!",
+        description: "Ready to continue your English learning journey?",
+      });
+    }
+  }, [user, toast]);
 
   const lessonCategories = [
     {
@@ -81,6 +91,15 @@ const Index = () => {
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
             Interactive lessons, AI-powered writing assistance, and personalized learning paths to take you from beginner to fluent.
           </p>
+          
+          {/* Welcome message for authenticated users */}
+          {user && (
+            <div className="mb-6">
+              <p className="text-lg text-gray-700 dark:text-gray-200">
+                Welcome back! Ready to continue your journey?
+              </p>
+            </div>
+          )}
           
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-4xl mx-auto">

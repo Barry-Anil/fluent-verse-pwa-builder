@@ -1,13 +1,24 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, Menu, X, Globe, User } from "lucide-react";
+import { Moon, Sun, Menu, X, Globe, User, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navigation = () => {
   const [isDark, setIsDark] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { toast } = useToast();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const toggleTheme = () => {
     setIsDark(!isDark);
@@ -16,6 +27,23 @@ const Navigation = () => {
       title: "Theme changed",
       description: `Switched to ${isDark ? 'light' : 'dark'} mode`,
     });
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Signed out",
+        description: "You've been successfully signed out.",
+      });
+      navigate('/auth');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -49,9 +77,34 @@ const Navigation = () => {
               {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
             
-            <Button variant="ghost" size="icon" className="hidden md:flex">
-              <User className="h-5 w-5" />
-            </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="hidden md:flex">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem className="font-medium">
+                    {user.email}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate('/auth')}
+                className="hidden md:flex"
+              >
+                Sign In
+              </Button>
+            )}
 
             {/* Mobile Menu Toggle */}
             <Button
@@ -79,6 +132,23 @@ const Navigation = () => {
                   {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                 </Button>
               </div>
+              {user ? (
+                <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">{user.email}</p>
+                  <Button variant="ghost" className="justify-start w-full" onClick={handleSignOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign out
+                  </Button>
+                </div>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  className="justify-start"
+                  onClick={() => navigate('/auth')}
+                >
+                  Sign In
+                </Button>
+              )}
             </div>
           </div>
         )}

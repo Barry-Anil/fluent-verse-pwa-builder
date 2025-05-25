@@ -1,73 +1,191 @@
-# Welcome to your Lovable project
 
-## Project info
+# EnglishMaster - Progressive Web Application
 
-**URL**: https://lovable.dev/projects/22afa325-c128-49dd-afb4-778d9a1f842b
+A comprehensive English learning platform built with React, TypeScript, and Tailwind CSS. Features interactive lessons, AI-powered writing assistance, idioms library, and offline capabilities.
 
-## How can I edit this code?
+## 🚀 Features
 
-There are several ways of editing your application.
+### Core Learning Features
+- **Interactive Lessons**: Grammar, vocabulary, and writing skills from beginner to advanced
+- **AI Writing Assistant**: Real-time feedback on grammar, style, and clarity
+- **Idioms & Expressions Library**: Learn common phrases with examples and origins
+- **Daily Writing Prompts**: Creative exercises to enhance fluency
+- **Metaphor Training**: Learn to identify and use metaphors effectively
+- **Progress Tracking**: Personal dashboard with achievements and skill levels
 
-**Use Lovable**
+### Technical Features
+- **Progressive Web App (PWA)**: Works offline with service worker
+- **Responsive Design**: Optimized for mobile, tablet, and desktop
+- **Dark Mode Support**: Toggle between light and dark themes
+- **Real-time Sync**: Progress syncs when back online
+- **Accessible**: Built with accessibility best practices
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/22afa325-c128-49dd-afb4-778d9a1f842b) and start prompting.
+## 🛠️ Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Frontend**: React 18, TypeScript
+- **Styling**: Tailwind CSS, shadcn/ui components
+- **Build Tool**: Vite
+- **PWA**: Service Worker, Web App Manifest
+- **Icons**: Lucide React
+- **State Management**: React Hooks
+- **Routing**: React Router DOM
 
-**Use your preferred IDE**
+## 📱 PWA Features
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **Offline Support**: Core functionality works without internet
+- **App-like Experience**: Install on home screen
+- **Fast Loading**: Cached resources for instant startup
+- **Push Notifications**: Coming soon for daily reminders
+- **Background Sync**: Sync progress when connection restored
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🏃‍♂️ Getting Started
 
-Follow these steps:
+### Prerequisites
+- Node.js 18+ and npm
+- Modern web browser with PWA support
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Installation
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+1. **Clone the repository**
+   ```bash
+   git clone <YOUR_GIT_URL>
+   cd englishmaster-pwa
+   ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+3. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+4. **Open in browser**
+   Navigate to `http://localhost:8080`
+
+### Building for Production
+
+```bash
+# Build the app
+npm run build
+
+# Preview production build
+npm run preview
 ```
 
-**Edit a file directly in GitHub**
+### PWA Installation
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Open the app in a supported browser
+2. Look for "Install" prompt or "Add to Home Screen"
+3. Follow browser-specific installation steps
 
-**Use GitHub Codespaces**
+## 🔧 Configuration
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Environment Variables
+Currently no environment variables required for basic functionality.
 
-## What technologies are used for this project?
+For AI features integration (future):
+- `VITE_OPENAI_API_KEY`: OpenAI API key for enhanced writing assistance
+- `VITE_SUPABASE_URL`: Supabase project URL
+- `VITE_SUPABASE_ANON_KEY`: Supabase anonymous key
 
-This project is built with:
+### Service Worker
+The service worker (`public/sw.js`) handles:
+- Caching static assets
+- Offline functionality
+- Background sync (planned)
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Manifest Configuration
+PWA settings in `public/manifest.json`:
+- App name and description
+- Icons and theme colors
+- Display mode and orientation
+- Screenshots for app stores
 
-## How can I deploy this project?
+## 📖 Usage Guide
 
-Simply open [Lovable](https://lovable.dev/projects/22afa325-c128-49dd-afb4-778d9a1f842b) and click on Share -> Publish.
+### For Learners
 
-## Can I connect a custom domain to my Lovable project?
+1. **Start Learning**: Choose your level and begin with grammar or vocabulary
+2. **Daily Practice**: Complete daily writing prompts and challenges
+3. **Get Feedback**: Use the AI writing assistant for instant feedback
+4. **Learn Idioms**: Explore the idioms library with real-world examples
+5. **Track Progress**: Monitor your improvement in the dashboard
 
-Yes, you can!
+### For Developers
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Key components:
+- `Navigation.tsx`: App header with theme toggle
+- `LessonCard.tsx`: Interactive lesson cards
+- `WritingAssistant.tsx`: AI-powered writing feedback
+- `IdiomsLibrary.tsx`: Searchable idioms database
+- `DailyPrompts.tsx`: Writing challenge system
+- `ProgressDashboard.tsx`: User progress visualization
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 🔮 Future Enhancements
+
+### Planned Features
+- **Supabase Integration**: User authentication and cloud sync
+- **OpenAI Integration**: Enhanced AI writing assistance
+- **Speech Recognition**: Pronunciation practice
+- **Multiplayer**: Learning with friends
+- **Gamification**: Points, levels, and competitions
+- **Advanced Analytics**: Detailed learning insights
+
+### AI Integration Options
+
+**Option 1: OpenAI Integration**
+```typescript
+// Example OpenAI integration
+const analyzeWriting = async (text: string) => {
+  const response = await fetch('/api/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text })
+  });
+  return response.json();
+};
+```
+
+**Option 2: Local LLM (Transformers.js)**
+```typescript
+// Example local AI integration
+import { pipeline } from '@huggingface/transformers';
+
+const classifier = await pipeline(
+  'text-classification',
+  'microsoft/DialoGPT-medium'
+);
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+For support and questions:
+- Create an issue in the repository
+- Check the documentation
+- Join our community discussions
+
+## 🙏 Acknowledgments
+
+- [shadcn/ui](https://ui.shadcn.com/) for beautiful components
+- [Lucide](https://lucide.dev/) for icons
+- [Tailwind CSS](https://tailwindcss.com/) for styling
+- English language learning community for inspiration
+
+---
+
+**Happy Learning! 🎓**

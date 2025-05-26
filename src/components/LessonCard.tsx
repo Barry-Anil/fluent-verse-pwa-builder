@@ -26,13 +26,8 @@ const LessonCard = ({ category, onStart }: LessonCardProps) => {
   const IconComponent = category.icon;
 
   const handleContinueClick = () => {
-    if (category.progress > 0) {
-      // Navigate to quiz for the specific category
-      navigate(`/quiz/${category.id}`);
-    } else {
-      // For new lessons, call the original onStart function
-      onStart();
-    }
+    // Always navigate to quiz for any category
+    navigate(`/quiz/${category.id}`);
   };
 
   return (

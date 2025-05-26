@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Mail, Lock, User, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthModalProps {
   open: boolean;
@@ -26,6 +26,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -78,6 +79,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         });
         resetForm();
         onOpenChange(false);
+        navigate('/');
       }
     } catch (error: any) {
       setErrors({ general: 'An unexpected error occurred. Please try again.' });
@@ -123,6 +125,7 @@ const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         });
         resetForm();
         onOpenChange(false);
+        navigate('/');
       }
     } catch (error: any) {
       setErrors({ general: 'An unexpected error occurred. Please try again.' });

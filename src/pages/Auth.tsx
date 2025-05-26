@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -69,7 +68,7 @@ const Auth = () => {
           title: "Welcome back!",
           description: "You've successfully signed in.",
         });
-        navigate('/');
+        navigate('/'); // Navigate to dashboard
       }
     } catch (error: any) {
       setErrors({ general: 'An unexpected error occurred. Please try again.' });
@@ -114,7 +113,7 @@ const Auth = () => {
           title: "Account created!",
           description: "Welcome to EnglishMaster! You can now start learning.",
         });
-        navigate('/');
+        navigate('/'); // Navigate to dashboard
       }
     } catch (error: any) {
       setErrors({ general: 'An unexpected error occurred. Please try again.' });

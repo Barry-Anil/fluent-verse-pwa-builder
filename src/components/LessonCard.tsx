@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Play, Clock, CheckCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface LessonCategory {
   id: string;
@@ -21,7 +22,18 @@ interface LessonCardProps {
 }
 
 const LessonCard = ({ category, onStart }: LessonCardProps) => {
+  const navigate = useNavigate();
   const IconComponent = category.icon;
+
+  const handleContinueClick = () => {
+    if (category.progress > 0) {
+      // Navigate to quiz for the specific category
+      navigate(`/quiz/${category.id}`);
+    } else {
+      // For new lessons, call the original onStart function
+      onStart();
+    }
+  };
 
   return (
     <Card className="group hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800 border-0 shadow-lg hover:-translate-y-1">
@@ -58,7 +70,7 @@ const LessonCard = ({ category, onStart }: LessonCardProps) => {
           </div>
           
           <Button 
-            onClick={onStart}
+            onClick={handleContinueClick}
             className="group-hover:shadow-lg transition-all duration-300"
             size="sm"
           >

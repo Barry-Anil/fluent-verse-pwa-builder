@@ -1,11 +1,11 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useProgressTracking } from '@/hooks/useProgressTracking';
 
 interface Question {
   id: number;
@@ -19,12 +19,18 @@ const Quiz = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { saveQuizAttempt } = useProgressTracking();
   
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState<boolean[]>([]);
+  const [startTime, setStartTime] = useState<number>(Date.now());
+
+  useEffect(() => {
+    setStartTime(Date.now());
+  }, []);
 
   // Sample questions based on category
   const getQuestionsForCategory = (category: string) => {
@@ -149,17 +155,27 @@ const Quiz = () => {
     setShowResult(true);
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setSelectedAnswer(null);
       setShowResult(false);
     } else {
-      // Quiz completed
+      // Quiz completed - save progress
+      const endTime = Date.now();
+      const timeTakenSeconds = Math.round((endTime - startTime) / 1000);
+      
+      await saveQuizAttempt(
+        categoryId || 'grammar',
+        questions.length,
+        score,
+        timeTakenSeconds
+      );
+      
       const finalScore = Math.round((score / questions.length) * 100);
       toast({
         title: "Quiz Completed!",
-        description: `You scored ${score}/${questions.length} (${finalScore}%)`,
+        description: `You scored ${score}/${questions.length} (${finalScore}%) - Progress saved!`,
       });
       navigate('/?tab=lessons');
     }

@@ -15,6 +15,7 @@ import DailyPrompts from "@/components/DailyPrompts";
 import ProgressDashboard from "@/components/ProgressDashboard";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProgressTracking } from "@/hooks/useProgressTracking";
 
 const Index = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -22,8 +23,10 @@ const Index = () => {
   const [currentLevel, setCurrentLevel] = useState("beginner");
   const [userProgress, setUserProgress] = useState(35);
   const [streak, setStreak] = useState(7);
+  const [lessonProgressData, setLessonProgressData] = useState<any[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { getUserStats, getLessonProgress } = useProgressTracking();
 
   const currentTab = searchParams.get('tab') || 'lessons';
 
@@ -41,11 +44,35 @@ const Index = () => {
         title: "Welcome back!",
         description: "Ready to continue your English learning journey?",
       });
+      loadProgressData();
     }
   }, [user, toast]);
 
+  const loadProgressData = async () => {
+    try {
+      const [stats, progress] = await Promise.all([
+        getUserStats(),
+        getLessonProgress()
+      ]);
+      
+      if (stats) {
+        setUserProgress(stats.overall_progress || 35);
+        setStreak(stats.current_streak || 7);
+      }
+      
+      setLessonProgressData(progress);
+    } catch (error) {
+      console.error('Error loading progress data:', error);
+    }
+  };
+
   const handleTabChange = (value: string) => {
     setSearchParams({ tab: value });
+  };
+
+  const getProgressForCategory = (categoryId: string) => {
+    const categoryProgress = lessonProgressData.find(p => p.category === categoryId);
+    return categoryProgress?.overall_progress || 0;
   };
 
   const lessonCategories = [
@@ -54,7 +81,7 @@ const Index = () => {
       title: "Grammar Fundamentals",
       description: "Master English grammar from basics to advanced",
       icon: BookOpen,
-      progress: 45,
+      progress: getProgressForCategory("grammar"),
       lessons: 24,
       color: "bg-blue-500"
     },
@@ -63,7 +90,7 @@ const Index = () => {
       title: "Vocabulary Builder",
       description: "Expand your word power with interactive exercises",
       icon: Brain,
-      progress: 60,
+      progress: getProgressForCategory("vocabulary"),
       lessons: 18,
       color: "bg-green-500"
     },
@@ -72,7 +99,7 @@ const Index = () => {
       title: "Writing Skills",
       description: "Improve sentence structure and style",
       icon: Edit,
-      progress: 30,
+      progress: getProgressForCategory("writing"),
       lessons: 15,
       color: "bg-purple-500"
     },
@@ -81,7 +108,7 @@ const Index = () => {
       title: "Idioms & Expressions",
       description: "Learn common phrases and their meanings",
       icon: Lightbulb,
-      progress: 25,
+      progress: getProgressForCategory("idioms"),
       lessons: 12,
       color: "bg-orange-500"
     }

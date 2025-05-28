@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Lightbulb, Search, Volume2, Star, BookOpen, Play, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useProgressTracking } from "@/hooks/useProgressTracking";
 
 const IdiomsLibrary = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -17,7 +17,15 @@ const IdiomsLibrary = () => {
   const [practiceAnswer, setPracticeAnswer] = useState("");
   const [showPracticeResult, setShowPracticeResult] = useState(false);
   const [practiceScore, setPracticeScore] = useState(0);
+  const [savedIdiomsData, setSavedIdiomsData] = useState<any[]>([]);
   const { toast } = useToast();
+  const { 
+    saveIdiom, 
+    removeSavedIdiom, 
+    getSavedIdioms, 
+    saveIdiomPracticeSession,
+    loading 
+  } = useProgressTracking();
 
   const idioms = [
     {
@@ -71,14 +79,22 @@ const IdiomsLibrary = () => {
     { id: "accuracy", name: "Accuracy" }
   ];
 
+  useEffect(() => {
+    loadSavedIdioms();
+  }, []);
+
+  const loadSavedIdioms = async () => {
+    const saved = await getSavedIdioms();
+    setSavedIdioms(saved.map(item => item.idiom_text));
+    setSavedIdiomsData(saved);
+  };
+
   const filteredIdioms = idioms.filter(idiom => {
     const matchesSearch = idiom.idiom.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          idiom.meaning.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || idiom.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
-
-  const savedIdiomsData = idioms.filter(idiom => savedIdioms.includes(idiom.idiom));
 
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
@@ -96,19 +112,27 @@ const IdiomsLibrary = () => {
     });
   };
 
-  const toggleSaveIdiom = (idiom: string) => {
-    if (savedIdioms.includes(idiom)) {
-      setSavedIdioms(savedIdioms.filter(saved => saved !== idiom));
-      toast({
-        title: "Idiom removed",
-        description: `"${idiom}" removed from saved idioms`,
-      });
+  const toggleSaveIdiom = async (idiom: any) => {
+    if (savedIdioms.includes(idiom.idiom)) {
+      const success = await removeSavedIdiom(idiom.idiom);
+      if (success) {
+        setSavedIdioms(savedIdioms.filter(saved => saved !== idiom.idiom));
+        toast({
+          title: "Idiom removed",
+          description: `"${idiom.idiom}" removed from saved idioms`,
+        });
+        await loadSavedIdioms(); // Refresh the saved idioms data
+      }
     } else {
-      setSavedIdioms([...savedIdioms, idiom]);
-      toast({
-        title: "Idiom saved!",
-        description: `"${idiom}" added to your collection`,
-      });
+      const success = await saveIdiom(idiom);
+      if (success) {
+        setSavedIdioms([...savedIdioms, idiom.idiom]);
+        toast({
+          title: "Idiom saved!",
+          description: `"${idiom.idiom}" added to your collection`,
+        });
+        await loadSavedIdioms(); // Refresh the saved idioms data
+      }
     }
   };
 
@@ -149,17 +173,19 @@ const IdiomsLibrary = () => {
     setShowPracticeResult(true);
   };
 
-  const nextPracticeQuestion = () => {
+  const nextPracticeQuestion = async () => {
     if (currentPracticeIndex < savedIdiomsData.length - 1) {
       setCurrentPracticeIndex(currentPracticeIndex + 1);
       setPracticeAnswer("");
       setShowPracticeResult(false);
     } else {
-      // Practice session complete
+      // Practice session complete - save to database
+      await saveIdiomPracticeSession(savedIdiomsData.length, practiceScore);
+      
       const finalScore = Math.round((practiceScore / savedIdiomsData.length) * 100);
       toast({
         title: "Practice Complete!",
-        description: `You scored ${practiceScore}/${savedIdiomsData.length} (${finalScore}%)`,
+        description: `You scored ${practiceScore}/${savedIdiomsData.length} (${finalScore}%) - Progress saved!`,
       });
       setPracticeMode(false);
     }
@@ -190,7 +216,7 @@ const IdiomsLibrary = () => {
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
             <CardTitle className="text-2xl text-center text-blue-600 dark:text-blue-400">
-              "{currentIdiom.idiom}"
+              "{currentIdiom.idiom_text}"
             </CardTitle>
             <CardDescription className="text-center">
               What does this idiom mean?
@@ -259,7 +285,7 @@ const IdiomsLibrary = () => {
                   You have {savedIdioms.length} saved idiom{savedIdioms.length !== 1 ? 's' : ''} ready for practice
                 </p>
               </div>
-              <Button onClick={startPractice} className="flex items-center gap-2">
+              <Button onClick={startPractice} className="flex items-center gap-2" disabled={loading}>
                 <Play className="h-4 w-4" />
                 Start Practice
               </Button>
@@ -353,7 +379,8 @@ const IdiomsLibrary = () => {
                   size="sm" 
                   variant={savedIdioms.includes(idiom.idiom) ? "default" : "outline"}
                   className="flex-1"
-                  onClick={() => toggleSaveIdiom(idiom.idiom)}
+                  onClick={() => toggleSaveIdiom(idiom)}
+                  disabled={loading}
                 >
                   <Star className={`h-4 w-4 mr-2 ${savedIdioms.includes(idiom.idiom) ? 'fill-current' : ''}`} />
                   {savedIdioms.includes(idiom.idiom) ? 'Saved' : 'Save'}

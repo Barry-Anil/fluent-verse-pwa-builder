@@ -4,12 +4,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Lightbulb, Search, Volume2, Star, BookOpen } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Lightbulb, Search, Volume2, Star, BookOpen, Play, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const IdiomsLibrary = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [savedIdioms, setSavedIdioms] = useState<string[]>([]);
+  const [practiceMode, setPracticeMode] = useState(false);
+  const [currentPracticeIndex, setCurrentPracticeIndex] = useState(0);
+  const [practiceAnswer, setPracticeAnswer] = useState("");
+  const [showPracticeResult, setShowPracticeResult] = useState(false);
+  const [practiceScore, setPracticeScore] = useState(0);
   const { toast } = useToast();
 
   const idioms = [
@@ -71,6 +78,8 @@ const IdiomsLibrary = () => {
     return matchesSearch && matchesCategory;
   });
 
+  const savedIdiomsData = idioms.filter(idiom => savedIdioms.includes(idiom.idiom));
+
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
       case 'beginner': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
@@ -85,8 +94,145 @@ const IdiomsLibrary = () => {
       title: "Playing pronunciation",
       description: `"${idiom}"`,
     });
-    // Here you would integrate with a TTS service
   };
+
+  const toggleSaveIdiom = (idiom: string) => {
+    if (savedIdioms.includes(idiom)) {
+      setSavedIdioms(savedIdioms.filter(saved => saved !== idiom));
+      toast({
+        title: "Idiom removed",
+        description: `"${idiom}" removed from saved idioms`,
+      });
+    } else {
+      setSavedIdioms([...savedIdioms, idiom]);
+      toast({
+        title: "Idiom saved!",
+        description: `"${idiom}" added to your collection`,
+      });
+    }
+  };
+
+  const startPractice = () => {
+    if (savedIdiomsData.length === 0) {
+      toast({
+        title: "No saved idioms",
+        description: "Save some idioms first to practice them!",
+        variant: "destructive",
+      });
+      return;
+    }
+    setPracticeMode(true);
+    setCurrentPracticeIndex(0);
+    setPracticeAnswer("");
+    setShowPracticeResult(false);
+    setPracticeScore(0);
+  };
+
+  const submitPracticeAnswer = () => {
+    const currentIdiom = savedIdiomsData[currentPracticeIndex];
+    const isCorrect = practiceAnswer.toLowerCase().trim() === currentIdiom.meaning.toLowerCase().trim();
+    
+    if (isCorrect) {
+      setPracticeScore(practiceScore + 1);
+      toast({
+        title: "Correct!",
+        description: "Great job! You got it right.",
+      });
+    } else {
+      toast({
+        title: "Not quite right",
+        description: `The correct answer is: ${currentIdiom.meaning}`,
+        variant: "destructive",
+      });
+    }
+    
+    setShowPracticeResult(true);
+  };
+
+  const nextPracticeQuestion = () => {
+    if (currentPracticeIndex < savedIdiomsData.length - 1) {
+      setCurrentPracticeIndex(currentPracticeIndex + 1);
+      setPracticeAnswer("");
+      setShowPracticeResult(false);
+    } else {
+      // Practice session complete
+      const finalScore = Math.round((practiceScore / savedIdiomsData.length) * 100);
+      toast({
+        title: "Practice Complete!",
+        description: `You scored ${practiceScore}/${savedIdiomsData.length} (${finalScore}%)`,
+      });
+      setPracticeMode(false);
+    }
+  };
+
+  if (practiceMode) {
+    const currentIdiom = savedIdiomsData[currentPracticeIndex];
+    
+    return (
+      <div className="space-y-6">
+        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900 dark:to-purple-900 border-0">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Play className="h-6 w-6 text-blue-600" />
+                Practice Mode
+              </div>
+              <Button variant="outline" onClick={() => setPracticeMode(false)}>
+                Exit Practice
+              </Button>
+            </CardTitle>
+            <CardDescription>
+              Question {currentPracticeIndex + 1} of {savedIdiomsData.length} | Score: {practiceScore}/{currentPracticeIndex + (showPracticeResult ? 1 : 0)}
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card className="max-w-2xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-2xl text-center text-blue-600 dark:text-blue-400">
+              "{currentIdiom.idiom}"
+            </CardTitle>
+            <CardDescription className="text-center">
+              What does this idiom mean?
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-center">
+              <p className="text-lg italic mb-4">"{currentIdiom.example}"</p>
+            </div>
+            
+            {!showPracticeResult ? (
+              <div className="space-y-4">
+                <Input
+                  placeholder="Enter the meaning of this idiom..."
+                  value={practiceAnswer}
+                  onChange={(e) => setPracticeAnswer(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && practiceAnswer.trim() && submitPracticeAnswer()}
+                />
+                <Button 
+                  onClick={submitPracticeAnswer}
+                  disabled={!practiceAnswer.trim()}
+                  className="w-full"
+                >
+                  Submit Answer
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
+                  <h4 className="font-medium mb-2">Correct Answer:</h4>
+                  <p>{currentIdiom.meaning}</p>
+                </div>
+                <Button onClick={nextPracticeQuestion} className="w-full">
+                  {currentPracticeIndex < savedIdiomsData.length - 1 ? 'Next Question' : 'Finish Practice'}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -101,6 +247,26 @@ const IdiomsLibrary = () => {
           </CardDescription>
         </CardHeader>
       </Card>
+
+      {/* Practice Section */}
+      {savedIdioms.length > 0 && (
+        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900 dark:to-purple-900 border-0">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold mb-1">Practice Your Saved Idioms</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  You have {savedIdioms.length} saved idiom{savedIdioms.length !== 1 ? 's' : ''} ready for practice
+                </p>
+              </div>
+              <Button onClick={startPractice} className="flex items-center gap-2">
+                <Play className="h-4 w-4" />
+                Start Practice
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Search and Filter */}
       <Card>
@@ -183,13 +349,44 @@ const IdiomsLibrary = () => {
               </div>
               
               <div className="flex gap-2 pt-2">
-                <Button size="sm" variant="outline" className="flex-1">
-                  <Star className="h-4 w-4 mr-2" />
-                  Save
+                <Button 
+                  size="sm" 
+                  variant={savedIdioms.includes(idiom.idiom) ? "default" : "outline"}
+                  className="flex-1"
+                  onClick={() => toggleSaveIdiom(idiom.idiom)}
+                >
+                  <Star className={`h-4 w-4 mr-2 ${savedIdioms.includes(idiom.idiom) ? 'fill-current' : ''}`} />
+                  {savedIdioms.includes(idiom.idiom) ? 'Saved' : 'Save'}
                 </Button>
-                <Button size="sm" className="flex-1">
-                  Practice
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="flex-1">
+                      Practice
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Quick Practice: "{idiom.idiom}"</DialogTitle>
+                      <DialogDescription>
+                        What does this idiom mean?
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <p className="text-center italic">"{idiom.example}"</p>
+                      <Input placeholder="Enter the meaning..." />
+                      <div className="flex gap-2">
+                        <Button variant="outline" className="flex-1">
+                          <X className="h-4 w-4 mr-2" />
+                          Skip
+                        </Button>
+                        <Button className="flex-1">
+                          <Check className="h-4 w-4 mr-2" />
+                          Check Answer
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardContent>
           </Card>

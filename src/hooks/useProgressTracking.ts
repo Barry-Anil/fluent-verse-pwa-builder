@@ -3,6 +3,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
+
+type LessonCategory = Database['public']['Enums']['lesson_category'];
 
 export const useProgressTracking = () => {
   const { user } = useAuth();
@@ -26,7 +29,7 @@ export const useProgressTracking = () => {
         .from('quiz_attempts')
         .insert({
           user_id: user.id,
-          category: category as any,
+          category: category as LessonCategory,
           questions_total: questionsTotal,
           questions_correct: questionsCorrect,
           score_percentage: scorePercentage,
@@ -60,7 +63,7 @@ export const useProgressTracking = () => {
         .from('lesson_progress')
         .select('*')
         .eq('user_id', user.id)
-        .eq('category', category)
+        .eq('category', category as LessonCategory)
         .single();
       
       if (currentProgress) {
@@ -77,7 +80,7 @@ export const useProgressTracking = () => {
             updated_at: new Date().toISOString()
           })
           .eq('user_id', user.id)
-          .eq('category', category);
+          .eq('category', category as LessonCategory);
       }
     } catch (error) {
       console.error('Error updating lesson progress:', error);
@@ -97,7 +100,7 @@ export const useProgressTracking = () => {
           meaning: idiom.meaning,
           example: idiom.example,
           category: idiom.category,
-          difficulty: idiom.difficulty as any,
+          difficulty: idiom.difficulty as Database['public']['Enums']['difficulty_level'],
           origin: idiom.origin
         });
       
